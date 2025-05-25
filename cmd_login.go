@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -14,6 +18,16 @@ func handlerLogin(s *state, cmd command) error {
 	username := strings.TrimSpace(cmd.arguments[0])
 	if username == "" {
 		return fmt.Errorf("username cannot be empty")
+	}
+
+	_, err := s.db.GetUser(context.Background(), username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Printf("User %s does not exist\n", username)
+			os.Exit(1)
+		} else {
+			return fmt.Errorf("error fetching user: %w", err)
+		}
 	}
 	if err := s.config.SetUser(username); err != nil {
 		return fmt.Errorf("error setting user: %w", err)

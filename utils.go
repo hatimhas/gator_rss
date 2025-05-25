@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/hatimhas/gator_rss/internal/config"
+	"github.com/hatimhas/gator_rss/internal/database"
 )
 
 type state struct {
+	db     *database.Queries
 	config *config.Config
 }
 
@@ -32,7 +34,7 @@ func (c *commands) run(s *state, cmd command) error {
 // - This method registers a new handler function for a command name.
 func (c *commands) register(name string, f func(*state, command) error) error {
 	if _, exists := c.cmdMap[name]; exists {
-		return fmt.Errorf("Error: command already exists")
+		return fmt.Errorf("error: command already exists")
 	}
 	c.cmdMap[name] = f
 	return nil
