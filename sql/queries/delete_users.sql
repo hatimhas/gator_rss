@@ -1,3 +1,4 @@
---name: DeleteUsers :exec
+-- name: DeleteUsers :exec
 DELETE FROM users;
+
 
