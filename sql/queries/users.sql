@@ -7,3 +7,6 @@ VALUES (
     $4
 )
 RETURNING *;
+
+-- name: GetUsers :many
+SELECT * FROM users;

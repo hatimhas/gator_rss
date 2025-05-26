@@ -51,6 +51,12 @@ func main() {
 	if err := cmds.register("reset", handlerReset); err != nil {
 		fmt.Println(err)
 	}
+	if err := cmds.register("users", handlerGetUsers); err != nil {
+		fmt.Println(err)
+	}
+	if err := cmds.register("agg", handlerAggregator); err != nil {
+		fmt.Println(err)
+	}
 
 	if err := cmds.run(&s, cmd); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command %s: %v\n", cmd.name, err)
