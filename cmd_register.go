@@ -16,16 +16,19 @@ func handlerRegister(s *state, cmd command) error {
 	if len(cmd.arguments) == 0 {
 		return fmt.Errorf("regiser command requires a name argument")
 	}
+
 	username := strings.TrimSpace(cmd.arguments[0])
 	if username == "" {
 		return fmt.Errorf("username cannot be empty")
 	}
+
 	userParams := database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name:      username,
 	}
+
 	getUser, err := s.db.GetUser(context.Background(), userParams.Name)
 	if err == nil {
 		if getUser != (database.User{}) {
@@ -40,5 +43,6 @@ func handlerRegister(s *state, cmd command) error {
 	}
 	s.config.SetUser(user.Name)
 	fmt.Printf("User %s created with ID %s\n", user.Name, user.ID)
+
 	return nil
 }
