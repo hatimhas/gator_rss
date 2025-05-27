@@ -21,4 +21,7 @@ RETURNING *;
 SELECT * FROM feeds
 WHERE url = $1;
 
-
+-- name: GetAllFeeds :many
+select feeds.name AS feed_name, feeds.url AS feed_url, users.name AS feed_creator_name
+from feeds
+INNER JOIN users ON feeds.user_id = users.id;
