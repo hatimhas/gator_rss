@@ -22,6 +22,18 @@ SELECT * FROM feeds
 WHERE url = $1;
 
 -- name: GetAllFeeds :many
-select feeds.name AS feed_name, feeds.url AS feed_url, users.name AS feed_creator_name
-from feeds
+SELECT feeds.name AS feed_name, feeds.url AS feed_url, users.name AS feed_creator_name
+FROM feeds
 INNER JOIN users ON feeds.user_id = users.id;
+
+-- name: MarkFeedAsFetched :exec
+UPDATE feeds
+SET 
+  last_fetched_at = NOW(),
+  updated_at = NOW()
+WHERE id = $1;
+
+-- name: GetNextFeedToFetch :one
+SELECT url FROM feeds
+ORDER BY LAST_FETCHED_AT ASC NULLS FIRST
+LIMIT 1;

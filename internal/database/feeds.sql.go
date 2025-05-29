@@ -29,7 +29,7 @@ INSERT INTO feeds
     $6
 
   )
-RETURNING id, created_at, updated_at, url, name, user_id
+RETURNING id, created_at, updated_at, url, name, user_id, last_fetched_at
 `
 
 type CreateFeedParams struct {
@@ -58,13 +58,14 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.Url,
 		&i.Name,
 		&i.UserID,
+		&i.LastFetchedAt,
 	)
 	return i, err
 }
 
 const getAllFeeds = `-- name: GetAllFeeds :many
-select feeds.name AS feed_name, feeds.url AS feed_url, users.name AS feed_creator_name
-from feeds
+SELECT feeds.name AS feed_name, feeds.url AS feed_url, users.name AS feed_creator_name
+FROM feeds
 INNER JOIN users ON feeds.user_id = users.id
 `
 
@@ -98,7 +99,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]GetAllFeedsRow, error) {
 }
 
 const getFeedByURL = `-- name: GetFeedByURL :one
-SELECT id, created_at, updated_at, url, name, user_id FROM feeds
+SELECT id, created_at, updated_at, url, name, user_id, last_fetched_at FROM feeds
 WHERE url = $1
 `
 
@@ -112,6 +113,33 @@ func (q *Queries) GetFeedByURL(ctx context.Context, url string) (Feed, error) {
 		&i.Url,
 		&i.Name,
 		&i.UserID,
+		&i.LastFetchedAt,
 	)
 	return i, err
+}
+
+const getNextFeedToFetch = `-- name: GetNextFeedToFetch :one
+SELECT url FROM feeds
+ORDER BY LAST_FETCHED_AT ASC NULLS FIRST
+LIMIT 1
+`
+
+func (q *Queries) GetNextFeedToFetch(ctx context.Context) (string, error) {
+	row := q.db.QueryRowContext(ctx, getNextFeedToFetch)
+	var url string
+	err := row.Scan(&url)
+	return url, err
+}
+
+const markFeedAsFetched = `-- name: MarkFeedAsFetched :exec
+UPDATE feeds
+SET 
+  last_fetched_at = NOW(),
+  updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) MarkFeedAsFetched(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, markFeedAsFetched, id)
+	return err
 }
