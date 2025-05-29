@@ -63,6 +63,9 @@ func main() {
 	if err := cmds.register("feeds", handlerPrintAllFeeds); err != nil {
 		fmt.Println(err)
 	}
+	if err := cmds.register("following", handlerGetFollowing); err != nil {
+		fmt.Println(err)
+	}
 	if err := cmds.register("follow", handlerFollowFeed); err != nil {
 		fmt.Println(err)
 	}
