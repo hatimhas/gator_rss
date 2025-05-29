@@ -7,6 +7,10 @@ import (
 	"github.com/hatimhas/gator_rss/internal/database"
 )
 
+// psql postgres://postgres:postgres@localhost:5432/gator
+// goose postgres "postgres://postgres:postgres@localhost:5432/gator" up
+// sudo systemctl start postgresql
+// sqlc generate
 type state struct {
 	db     *database.Queries
 	config *config.Config

@@ -63,7 +63,9 @@ func main() {
 	if err := cmds.register("feeds", handlerPrintAllFeeds); err != nil {
 		fmt.Println(err)
 	}
-
+	if err := cmds.register("follow", handlerFollowFeed); err != nil {
+		fmt.Println(err)
+	}
 	if err := cmds.run(&s, cmd); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command %s: %v\n", cmd.name, err)
 		os.Exit(1)
