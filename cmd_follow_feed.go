@@ -9,7 +9,7 @@ import (
 	"github.com/hatimhas/gator_rss/internal/database"
 )
 
-func handlerFollowFeed(s *state, cmd command) error {
+func handlerFollowFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.arguments) != 1 {
 		return fmt.Errorf("follow cmd requires one arg: feed_url")
 	}
@@ -21,11 +21,7 @@ func handlerFollowFeed(s *state, cmd command) error {
 	if err != nil {
 		return fmt.Errorf("error getting feed by URL %s: %v", feedURL, err)
 	}
-
-	cur_user_data, err := s.db.GetUser(context.Background(), s.config.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("error getting current user %s: %v", s.config.CurrentUserName, err)
-	}
+	cur_user_data := user
 
 	feeds_users_data, err := s.db.CreateFeedFollow(context.Background(),
 		database.CreateFeedFollowParams{

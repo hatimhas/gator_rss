@@ -57,16 +57,16 @@ func main() {
 	if err := cmds.register("agg", handlerAggregator); err != nil {
 		fmt.Println(err)
 	}
-	if err := cmds.register("addfeed", handlerAddFeed); err != nil {
+	if err := cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed)); err != nil {
 		fmt.Println(err)
 	}
 	if err := cmds.register("feeds", handlerPrintAllFeeds); err != nil {
 		fmt.Println(err)
 	}
-	if err := cmds.register("following", handlerGetFollowing); err != nil {
+	if err := cmds.register("following", middlewareLoggedIn(handlerGetFollowing)); err != nil {
 		fmt.Println(err)
 	}
-	if err := cmds.register("follow", handlerFollowFeed); err != nil {
+	if err := cmds.register("follow", middlewareLoggedIn(handlerFollowFeed)); err != nil {
 		fmt.Println(err)
 	}
 	if err := cmds.run(&s, cmd); err != nil {

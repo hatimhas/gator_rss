@@ -11,18 +11,14 @@ import (
 	"github.com/hatimhas/gator_rss/internal/database"
 )
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.arguments) != 2 {
 		return fmt.Errorf("addfeed command requires a name and url argument")
 	}
 	feedName := strings.TrimSpace(cmd.arguments[0])
 	feedURL := strings.TrimSpace(cmd.arguments[1])
 
-	currentUser := s.config.CurrentUserName
-	currentUserData, err := s.db.GetUser(context.Background(), currentUser)
-	if err != nil {
-		return fmt.Errorf("error getting data of current logged from users db: %v", err)
-	}
+	currentUserData := user
 
 	feedParams := database.CreateFeedParams{
 		ID:        uuid.New(),
