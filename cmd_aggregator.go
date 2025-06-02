@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/hatimhas/gator_rss/internal/database"
 )
 
 func handlerAggregator(s *state, cmd command) error {
@@ -23,10 +27,6 @@ func handlerAggregator(s *state, cmd command) error {
 	}
 }
 
-// Getting the next feed: You need to query your database to find the feed that's most overdue for fetching.
-// Marking it fetched: Once you've selected a feed, you need to update its record in the database to show that it's just been fetched, so you don't immediately pick it again.
-// Fetching the feed: You'll use the fetchFeed function, just like you did before, but this time you'll use the URL retrieved from the database.
-// Processing the posts: You'll loop through the items (posts) from the fetched feed and, for now, just print their titles.
 func scrapeFeed(s *state) error {
 	nextFeedURL, err := s.db.GetNextFeedToFetch(context.Background())
 	if err != nil {
@@ -38,7 +38,7 @@ func scrapeFeed(s *state) error {
 		return fmt.Errorf("error getting feed by URL %s: %w", nextFeedURL, err)
 	}
 
-	fmt.Println("New Feed to Update: %s", nextFeedData.Name)
+	fmt.Printf("New Feed to Update: %s\n", nextFeedData.Name)
 	err = s.db.MarkFeedAsFetched(context.Background(), nextFeedData.ID)
 	if err != nil {
 		return fmt.Errorf("error marking feed as fetched: %w", err)
@@ -50,13 +50,31 @@ func scrapeFeed(s *state) error {
 	}
 
 	for _, item := range newFeedData.Channel.Item {
-		fmt.Printf("Title: %s\n", item.Title)
+		var publishedAt time.Time
+		if t, err := time.Parse(time.RFC1123Z, item.PubDate); err == nil {
+			publishedAt = t
+		}
+
+		_, err = s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			FeedID:      nextFeedData.ID,
+			Title:       item.Title,
+			Description: item.Description,
+			Url:         item.Link,
+			PublishedAt: publishedAt,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				fmt.Printf("Post %s already exists, skipping...\n", item.Title)
+				continue
+			}
+			log.Printf("Couldn't create post: %v", err)
+			continue
+		}
+		fmt.Printf("Post %s created successfully\n", item.Title)
 	}
-	// data, err := json.MarshalIndent(newFeedData, "", "  ")
-	// if err != nil {
-	// 	log.Fatalf("error marshaling feed to JSON: %v", err)
-	// }
-	// fmt.Println(string(data))
-	//
+	fmt.Printf("Feed %s collected, %v posts found\n", newFeedData.Channel.Title, len(newFeedData.Channel.Item))
 	return nil
 }

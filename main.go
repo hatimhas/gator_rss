@@ -69,6 +69,7 @@ func main() {
 	if err := cmds.register("follow", middlewareLoggedIn(handlerFollowFeed)); err != nil {
 		fmt.Println(err)
 	}
+	cmds.register("browse", middlewareLoggedIn(handlerBrowse))
 	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollowFeed))
 	if err := cmds.run(&s, cmd); err != nil {
 		fmt.Fprintf(os.Stderr, "Error running command %s: %v\n", cmd.name, err)
